@@ -11,6 +11,14 @@
 |
 */
 
+use Illuminate\Support\Facades\Route;
+
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/usuarios', 'PruebaController@listarUsuarios');
+
+Route::get('/categorias', 'PruebaController@listarCategorias');
+
+Route::get('/posts', 'PruebaController@listarPost');

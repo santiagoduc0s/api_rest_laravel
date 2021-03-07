@@ -11,6 +11,19 @@ class User extends Authenticatable
     use Notifiable;
 
     /**
+     * Tabla asociada al modelo.
+     */
+    protected $table = 'users';
+
+    /**
+     * Cada usuario tiene cero o muchos posts.
+     */
+    public function posts()
+    {
+        return $this->hasMany('App\Post');
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array
