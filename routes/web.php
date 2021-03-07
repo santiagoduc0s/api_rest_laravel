@@ -13,12 +13,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
-Route::get('/usuarios', 'PruebaController@listarUsuarios');
-
-Route::get('/categorias', 'PruebaController@listarCategorias');
-
-Route::get('/posts', 'PruebaController@listarPost');
+// User
+Route::post('/api/usuario_login', 'UserController@login');
+Route::post('/api/usuario_registro', 'UserController@register');
