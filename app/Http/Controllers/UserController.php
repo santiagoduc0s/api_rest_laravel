@@ -66,6 +66,6 @@ class UserController extends Controller
             ];
         }
 
-        return response()->json($res);
+        return response()->json($res, $res['code']);
     }
 }
