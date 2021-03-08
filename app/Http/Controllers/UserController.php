@@ -10,7 +10,8 @@ class UserController extends Controller
 {
     public function login(Request $req)
     {
-        return 'login';
+        $JwtAuth = new \JwtAuth();
+        return $JwtAuth->signUp();
     }
 
     public function register(Request $req)

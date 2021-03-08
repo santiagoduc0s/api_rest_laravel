@@ -8,5 +8,8 @@ use App\User;
 
 class JwtAuth
 {
-    
+    public function signUp()
+    {
+        return 'metodo signUp';
+    }
 }
