@@ -10,8 +10,39 @@ class UserController extends Controller
 {
     public function login(Request $req)
     {
-        $JwtAuth = new \JwtAuth();
-        return $JwtAuth->signUp();
+
+        $data = json_decode($req->json);
+        $data_array = json_decode($req->json, true);
+
+        $validate = Validator::make($data_array, [
+            'email'     => 'required|email',
+            'password'  => 'required'
+        ]);
+
+        $data_array = array_map('trim', $data_array);
+
+        if ($validate->fails()) {
+            $signUp = [
+                'status'    => 'error',
+                'code'      => 400,
+                'message'   => 'Datos ingresados incorrectos.',
+                'errors'    => $validate->errors()
+            ];
+        } else {
+
+            $JwtAuth = new \JwtAuth();
+
+            $email = $data_array['email'];
+            $pwd = hash('sha256', $data_array['password']);
+
+            if (!empty($data->getToken)) {
+                $signUp = $JwtAuth->signUp($email, $pwd, $data->getToken);
+            } else {
+                $signUp = $JwtAuth->signUp($email, $pwd);
+            }
+        }
+
+        return response()->json($signUp, 200);
     }
 
     public function register(Request $req)
@@ -21,9 +52,9 @@ class UserController extends Controller
 
         $res = [];
         if (!empty($data_array)) {
-            
+
             $validate = Validator::make($data_array, [
-                'name'      => 'required|alpha|min:10',
+                'name'      => 'required|alpha',
                 'surname'   => 'required|alpha',
                 'email'     => 'required|email|unique:users',
                 'password'  => 'required'
@@ -40,7 +71,7 @@ class UserController extends Controller
                 ];
             } else {
 
-                $pwd = password_hash($data->password, PASSWORD_BCRYPT, ['cost' => 4]);
+                $pwd = hash('sha256', $data->password);
 
                 $user = new User();
                 $user->name = $data_array['name'];
@@ -68,5 +99,17 @@ class UserController extends Controller
         }
 
         return response()->json($res, $res['code']);
+    }
+
+    public function update(Request $req)
+    {
+        $token = $req->header('Authorization');
+        $JwtAuth = new \JwtAuth();
+        $checkToken = $JwtAuth->checkToken($token);
+        if ($checkToken) {
+            echo 'Login correcto';
+        } else {
+            echo 'Login incorrecto';
+        }
     }
 }

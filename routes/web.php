@@ -16,3 +16,4 @@ use Illuminate\Support\Facades\Route;
 // User
 Route::post('/api/usuario_login', 'UserController@login');
 Route::post('/api/usuario_registro', 'UserController@register');
+Route::post('/api/update', 'UserController@update');
