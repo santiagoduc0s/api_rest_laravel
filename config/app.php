@@ -224,7 +224,7 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
-        'JwtAuth' => App\Helpers\JwtAuth::class
+        'JwtAuth' => App\Helpers\JwtAuth::class // Mediante \JwtAuth se puede acceder a los metodos de la clase JwtAuth sin tener que importar la clase con "use \App\Helpers\JwtAuth;"
 
     ],
 

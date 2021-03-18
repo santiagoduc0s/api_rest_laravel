@@ -6,43 +6,58 @@ use App\User;
 use Illuminate\Http\Request;
 //use Illuminate\Support\Facades\Validator;
 
+
 class UserController extends Controller
 {
     public function login(Request $req)
     {
 
-        $data = json_decode($req->json);
+        // Recibir datos enviados.
         $data_array = json_decode($req->json, true);
 
-        $validate = Validator::make($data_array, [
-            'email'     => 'required|email',
-            'password'  => 'required'
-        ]);
+        // Validar los datos.
+        if (!empty($data_array)) {
 
-        $data_array = array_map('trim', $data_array);
+            $data_array = array_map('trim', $data_array);
 
-        if ($validate->fails()) {
-            $signUp = [
-                'status'    => 'error',
-                'code'      => 400,
-                'message'   => 'Datos ingresados incorrectos.',
-                'errors'    => $validate->errors()
-            ];
-        } else {
+            $validate = \Validator::make($data_array, [
+                'email'     => 'required|email',
+                'password'  => 'required'
+            ]);
 
-            $JwtAuth = new \JwtAuth();
+            if ($validate->fails()) { // Validacion fallida.
 
-            $email = $data_array['email'];
-            $pwd = hash('sha256', $data_array['password']);
+                $res = [
+                    'status'    => 'error',
+                    'code'      => 400,
+                    'message'   => 'Datos ingresados incorrectos.',
+                    'errors'    => $validate->errors()
+                ];
+            } else { // Validacion correcta.
 
-            if (!empty($data->getToken)) {
-                $signUp = $JwtAuth->signUp($email, $pwd, $data->getToken);
-            } else {
-                $signUp = $JwtAuth->signUp($email, $pwd);
+                $JwtAuth = new \JwtAuth();
+
+                $email = $data_array['email'];
+                $password = hash('sha256', $data_array['password']);
+
+                if (isset($data_array['token']) && !empty($data_array['token'])) {
+                    // solicitar datos
+                    $res = $JwtAuth->signUp($email, $password, $data_array['token']);
+                } else {
+                    // solicitar token
+                    $res = $JwtAuth->signUp($email, $password);
+                }
             }
+        } else { // Datos invalidos.
+
+            $res = [
+                'status'    => 'error',
+                'code'      => 200,
+                'message'   => 'Los datos enviados son invalidos.',
+            ];
         }
 
-        return response()->json($signUp, 200);
+        return response()->json($res, 200);
     }
 
     public function register(Request $req)
@@ -50,7 +65,7 @@ class UserController extends Controller
         // Recibir datos enviados.
         $data_array = json_decode($req->json, true);
 
-        
+
         // Validar los datos.
         if (!empty($data_array)) {
 
@@ -79,7 +94,7 @@ class UserController extends Controller
                 $user->email = $data_array['email'];
                 $user->password = hash('sha256', $data_array['password']); // cifrar contraseña
                 $user->role = 'USER';
-                
+
                 $user->save(); // Registrar usuario.
 
                 $res = [
@@ -107,7 +122,7 @@ class UserController extends Controller
         $JwtAuth = new \JwtAuth();
         $checkToken = $JwtAuth->checkToken($token);
         if ($checkToken) {
-            
+
             $json = $req->input('json', null);
             $params_array = json_decode($json, true);
 
@@ -116,7 +131,7 @@ class UserController extends Controller
             $validate = Validator::make($params_array, [
                 'name'      => 'required|alpha',
                 'surname'   => 'required|alpha',
-                'email'     => 'required|email|unique:users,'.$user->sub,
+                'email'     => 'required|email|unique:users,' . $user->sub,
             ]);
 
             unset($params_array['id']);
@@ -134,7 +149,6 @@ class UserController extends Controller
                 'message' => 'El usuario se actualizo correctamente.',
                 'user' => $user
             );
-
         } else {
             $res = array(
                 'code' => 400,

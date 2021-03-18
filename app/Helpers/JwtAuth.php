@@ -6,8 +6,17 @@ use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\DB;
 use App\User;
 
+/**
+ * 
+ * JSON Web Token (JWT) es un estándar para crear un token que sirva 
+ * para enviar datos entre aplicaciones o servicios y garantizar que 
+ * sean válidos y seguros.
+ * 
+ */
+
 class JwtAuth
 {
+
 
     public $key;
 
@@ -16,42 +25,37 @@ class JwtAuth
         $this->key = 'est0_3s_un4_clv3_supe7_secre7a';
     }
 
-    public function signUp($email, $password, $getToken = null)
+    public function signUp($email, $password, $token = null)
     {
-
-        
+        // Buscar usuario.
         $user = User::where([
             'email'     => $email,
             'password'  => $password
         ])->first();
 
-        $signUp = false;
-        if (is_object($user)) {
-            $signUp = true;
-        }
+        if (is_object($user)) { // Login correcto.
 
-        if ($signUp) {
-            $token = array(
-                'sub'       => $user->id,
-                'email'     => $user->email,
-                'name'      => $user->name,
-                'surname'   => $user->surname,
-                'iat'       => time(),
-                'exp'       => time() + (7 * 24 * 60 * 60)
-            );
+            if (is_null($token)) {
 
-            $jwt = JWT::encode($token, $this->key, 'HS256');
-            $decode = JWT::decode($jwt, $this->key, ['HS256']);
+                $token = [
+                    'sub'       => $user->id,
+                    'email'     => $user->email,
+                    'name'      => $user->name,
+                    'surname'   => $user->surname,
+                    'iat'       => time(),
+                    'exp'       => time() + (7 * 24 * 60 * 60)
+                ];
 
-            if (is_null($getToken)) {
-                $data = $jwt;
+                // crear token
+                $data = JWT::encode($token, $this->key, 'HS256');
             } else {
-                $data = $decode;
+                $data = JWT::decode($token, $this->key, ['HS256']);
             }
-        } else {
+        } else { // Login fallido.
+
             $data = [
                 'status' => 'error',
-                'message' => 'Login incorrecto.'
+                'message' => 'Los datos ingresados son incorrectos.'
             ];
         }
 
@@ -80,7 +84,7 @@ class JwtAuth
         if ($getIdentity) {
             return $decode;
         }
-        
+
         return $auth;
     }
 }
