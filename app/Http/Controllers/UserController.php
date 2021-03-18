@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+//use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -47,54 +47,54 @@ class UserController extends Controller
 
     public function register(Request $req)
     {
-        $data = json_decode($req->json);
+        // Recibir datos enviados.
         $data_array = json_decode($req->json, true);
 
-        $res = [];
+        
+        // Validar los datos.
         if (!empty($data_array)) {
 
-            $validate = Validator::make($data_array, [
+            $data_array = array_map('trim', $data_array);
+
+            $validate = \Validator::make($data_array, [
                 'name'      => 'required|alpha',
                 'surname'   => 'required|alpha',
                 'email'     => 'required|email|unique:users',
                 'password'  => 'required'
             ]);
 
-            $data_array = array_map('trim', $data_array);
+            if ($validate->fails()) { // Validacion fallida.
 
-            if ($validate->fails()) {
                 $res = [
                     'status'    => 'error',
                     'code'      => 400,
-                    'message'   => 'No se pudo guardar el usuario',
+                    'message'   => 'No se pudo registar el usuario.',
                     'errors'    => $validate->errors()
                 ];
-            } else {
-
-                $pwd = hash('sha256', $data->password);
+            } else { // Validacion correcta.
 
                 $user = new User();
                 $user->name = $data_array['name'];
                 $user->surname = $data_array['surname'];
                 $user->email = $data_array['email'];
-                $user->password = $pwd;
+                $user->password = hash('sha256', $data_array['password']); // cifrar contraseña
                 $user->role = 'USER';
-
-                $user->save();
+                
+                $user->save(); // Registrar usuario.
 
                 $res = [
                     'status'    => 'succes',
                     'code'      => 200,
-                    'message'   => 'Se registro el usuario correctamente',
-                    'user'    => $user
+                    'message'   => 'Se registro el usuario correctamente.',
+                    'user'      => $user
                 ];
             }
-        } else {
+        } else { // Datos incorrectos.
+
             $res = [
                 'status'    => 'error',
                 'code'      => 200,
-                'message'   => 'Los datos enviados no son correctos',
-                'errors'    => null
+                'message'   => 'Los datos enviados son incorrectos.',
             ];
         }
 
@@ -107,9 +107,42 @@ class UserController extends Controller
         $JwtAuth = new \JwtAuth();
         $checkToken = $JwtAuth->checkToken($token);
         if ($checkToken) {
-            echo 'Login correcto';
+            
+            $json = $req->input('json', null);
+            $params_array = json_decode($json, true);
+
+            $user = $JwtAuth->checkToken($token, true);
+
+            $validate = Validator::make($params_array, [
+                'name'      => 'required|alpha',
+                'surname'   => 'required|alpha',
+                'email'     => 'required|email|unique:users,'.$user->sub,
+            ]);
+
+            unset($params_array['id']);
+            unset($params_array['role']);
+            unset($params_array['password']);
+            unset($params_array['created_at']);
+            // unset($params_array['updated_at']);
+            unset($params_array['remember_token']);
+
+            $user_update = User::where('id', $user->sub)->update($params_array);
+
+            $res = array(
+                'code' => 200,
+                'status' => 'succes',
+                'message' => 'El usuario se actualizo correctamente.',
+                'user' => $user
+            );
+
         } else {
-            echo 'Login incorrecto';
+            $res = array(
+                'code' => 400,
+                'status' => 'error',
+                'message' => 'El usuario no esta identificado.'
+            );
         }
+
+        return response()->json($res, $res['code']);
     }
 }

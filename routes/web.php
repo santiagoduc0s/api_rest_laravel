@@ -14,6 +14,6 @@
 use Illuminate\Support\Facades\Route;
 
 // User
-Route::post('/api/usuario_login', 'UserController@login');
-Route::post('/api/usuario_registro', 'UserController@register');
-Route::post('/api/update', 'UserController@update');
+Route::post('/api/user_login', 'UserController@login');
+Route::post('/api/user_register', 'UserController@register');
+Route::put('/api/user_update', 'UserController@update');
