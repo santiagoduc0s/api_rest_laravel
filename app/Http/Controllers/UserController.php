@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\User;
 use Illuminate\Http\Request;
-//use Illuminate\Support\Facades\Validator;
 
 
 class UserController extends Controller
@@ -37,16 +36,10 @@ class UserController extends Controller
 
                 $JwtAuth = new \JwtAuth();
 
+                // Solicitar token.
                 $email = $data_array['email'];
                 $password = hash('sha256', $data_array['password']);
-
-                if (isset($data_array['token']) && !empty($data_array['token'])) {
-                    // solicitar datos
-                    $res = $JwtAuth->signUp($email, $password, $data_array['token']);
-                } else {
-                    // solicitar token
-                    $res = $JwtAuth->signUp($email, $password);
-                }
+                $res = $JwtAuth->signUp($email, $password);
             }
         } else { // Datos invalidos.
 
@@ -118,38 +111,64 @@ class UserController extends Controller
 
     public function update(Request $req)
     {
+        // Recibir token.
         $token = $req->header('Authorization');
+
+        // Validar token.
         $JwtAuth = new \JwtAuth();
-        $checkToken = $JwtAuth->checkToken($token);
-        if ($checkToken) {
+        if ($JwtAuth->checkToken($token)) { // Token valido.
 
-            $json = $req->input('json', null);
-            $params_array = json_decode($json, true);
+            // Recibir data enviada.
+            $data_array = json_decode($req->json, true);
 
+            // Decodificar token.
             $user = $JwtAuth->checkToken($token, true);
 
-            $validate = Validator::make($params_array, [
+            // Validar datos enviados.
+            $validate = \Validator::make($data_array, [
                 'name'      => 'required|alpha',
                 'surname'   => 'required|alpha',
-                'email'     => 'required|email|unique:users,' . $user->sub,
+                'email'     => 'required|email|unique:users,email,'.$user->sub
             ]);
 
-            unset($params_array['id']);
-            unset($params_array['role']);
-            unset($params_array['password']);
-            unset($params_array['created_at']);
-            // unset($params_array['updated_at']);
-            unset($params_array['remember_token']);
+            if ($validate->fails()) { // Validacion fallida.
 
-            $user_update = User::where('id', $user->sub)->update($params_array);
+                $res = [
+                    'code' => 400,
+                    'status' => 'succes',
+                    'message' => 'Los datos enviados son invalidos.',
+                    'errors' => $validate->errors()
+                ];
+            } else { // Validacion correcta.
 
-            $res = array(
-                'code' => 200,
-                'status' => 'succes',
-                'message' => 'El usuario se actualizo correctamente.',
-                'user' => $user
-            );
-        } else {
+                // No actualizar
+                unset($data_array['id']);
+                unset($data_array['role']);
+                unset($data_array['password']);
+                unset($data_array['created_at']);
+                unset($data_array['remember_token']);
+
+                // Actualizar usuario.
+                $user_update = User::where('id', $user->sub)->update($data_array);
+
+                if ($user_update) { // Usuario actualizado.
+                    $res = [
+                        'code' => 200,
+                        'status' => 'succes',
+                        'message' => 'El usuario se actualizo correctamente.',
+                        'user' => $user,
+                        'changes' => $data_array
+                    ];
+                } else { // Error al actualizar.
+                    $res = [
+                        'code' => 400,
+                        'status' => 'succes',
+                        'message' => 'No fue posible actualizar el usuario.',
+                    ];
+                }
+            }
+        } else { // Token invalido.
+
             $res = array(
                 'code' => 400,
                 'status' => 'error',

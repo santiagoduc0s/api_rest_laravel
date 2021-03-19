@@ -5,6 +5,7 @@ namespace App\Helpers;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\DB;
 use App\User;
+use Exception;
 
 /**
  * 
@@ -17,15 +18,14 @@ use App\User;
 class JwtAuth
 {
 
-
-    public $key;
+    private $key;
 
     public function __construct()
     {
         $this->key = 'est0_3s_un4_clv3_supe7_secre7a';
     }
 
-    public function signUp($email, $password, $token = null)
+    public function signUp($email, $password)
     {
         // Buscar usuario.
         $user = User::where([
@@ -35,22 +35,17 @@ class JwtAuth
 
         if (is_object($user)) { // Login correcto.
 
-            if (is_null($token)) {
+            $token = [
+                'sub'       => $user->id,
+                'email'     => $user->email,
+                'name'      => $user->name,
+                'surname'   => $user->surname,
+                'iat'       => time(),
+                'exp'       => time() + (7 * 24 * 60 * 60) // despues de este tiempo el token dejara de funcionar
+            ];
 
-                $token = [
-                    'sub'       => $user->id,
-                    'email'     => $user->email,
-                    'name'      => $user->name,
-                    'surname'   => $user->surname,
-                    'iat'       => time(),
-                    'exp'       => time() + (7 * 24 * 60 * 60)
-                ];
-
-                // crear token
-                $data = JWT::encode($token, $this->key, 'HS256');
-            } else {
-                $data = JWT::decode($token, $this->key, ['HS256']);
-            }
+            // Crear token.
+            $data = JWT::encode($token, $this->key, 'HS256');
         } else { // Login fallido.
 
             $data = [
@@ -62,27 +57,29 @@ class JwtAuth
         return $data;
     }
 
-    public function checkToken($jwt, $getIdentity = false)
+    public function checkToken($token, $getIdentity = false)
     {
-        $auth = false;
-
         try {
-            $jwt = str_replace('"', '', $jwt);
-            $decode = JWT::decode($jwt, $this->key, ['HS256']);
+
+            // decodificar token
+            $token = str_replace('"', '', $token);
+            $user = JWT::decode($token, $this->key, ['HS256']);
+
+            if (!empty($user) && is_object($user) && isset($user->sub)) {
+                
+                if ($getIdentity) {
+                    return $user;
+                }
+                $auth = true;
+            } else {
+                $auth = false;
+            }
         } catch (\UnexpectedValueException $e) {
             $auth = false;
         } catch (\DomainException $e) {
             $auth = false;
-        }
-
-        if (!empty($decode) && is_object($decode) && isset($decode->sub)) {
-            $auth = true;
-        } else {
+        } catch (\Exception $e) {
             $auth = false;
-        }
-
-        if ($getIdentity) {
-            return $decode;
         }
 
         return $auth;
