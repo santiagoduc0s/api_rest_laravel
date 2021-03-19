@@ -128,7 +128,7 @@ class UserController extends Controller
             $validate = \Validator::make($data_array, [
                 'name'      => 'required|alpha',
                 'surname'   => 'required|alpha',
-                'email'     => 'required|email|unique:users,email,'.$user->sub
+                'email'     => 'required|email|unique:users,email,' . $user->sub
             ]);
 
             if ($validate->fails()) { // Validacion fallida.
@@ -169,13 +169,28 @@ class UserController extends Controller
             }
         } else { // Token invalido.
 
-            $res = array(
+            $res = [
                 'code' => 400,
                 'status' => 'error',
                 'message' => 'El usuario no esta identificado.'
-            );
+            ];
         }
 
         return response()->json($res, $res['code']);
+    }
+
+    public function uploadAvatar(Request $req)
+    {
+        /**
+         * Un Middleware es un metodo que se ejecuta antes de la accion del controlador.
+         */
+
+        $res = [
+            'code' => 400,
+            'status' => 'error',
+            'message' => 'Ocurrió un error en la subida del avatar.'
+        ];
+
+        return $res;
     }
 }

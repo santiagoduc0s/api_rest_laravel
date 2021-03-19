@@ -13,7 +13,11 @@
 
 use Illuminate\Support\Facades\Route;
 
+// Carga Middleware
+use \App\http\Middleware\ApiAuthMiddleware;
+
 // User
-Route::post('/api/user_login', 'UserController@login');
-Route::post('/api/user_register', 'UserController@register');
-Route::put('/api/user_update', 'UserController@update');
+Route::post('/api/user/login', 'UserController@login');
+Route::post('/api/user/register', 'UserController@register');
+Route::put('/api/user/update', 'UserController@update');
+Route::post('/api/user/upload_avatar', 'UserController@uploadAvatar')->middleware(ApiAuthMiddleware::class);
