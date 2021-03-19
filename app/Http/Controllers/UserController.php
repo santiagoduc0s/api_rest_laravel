@@ -185,12 +185,52 @@ class UserController extends Controller
          * Un Middleware es un metodo que se ejecuta antes de la accion del controlador.
          */
 
-        $res = [
-            'code' => 400,
-            'status' => 'error',
-            'message' => 'Ocurrió un error en la subida del avatar.'
-        ];
+        // Recibir imagen
+        $image = $req->file('file0');
 
-        return $res;
+        // Validar imagen.
+        if (!$image) { // Validacion fallida.
+
+            $validate = \Validator::make($req->all(), [
+                'file0' => 'required|mimes:png,jpg,jpeg'
+            ]);
+
+            if ($validate->fails()) {
+
+                $res = [
+                    'code' => 400,
+                    'status' => 'error',
+                    'message' => 'El formato del archivo seleccionado es invalida.'
+                ];
+            } else {
+
+                $res = [
+                    'code' => 400,
+                    'status' => 'error',
+                    'message' => 'Ocurrió un error en la subida del avatar.'
+                ];
+            }
+            
+            
+        } else { // Validacion correcta.
+
+            $image_name = time() . $image->getClientOriginalName();
+            
+            /**
+             * Para usuar este disco, primero debe ser registrado creado y registrado 
+             * en \config\filesystems.php
+             */
+            \Storage::disk('users')->put($image_name, \File::get($image)); // Guardar imagen.
+             
+            $res = [
+                'code' => 200,
+                'status' => 'succes',
+                'message' => 'El avatar fue subido correctamente.',
+                'image' => $image_name
+            ];
+
+        }
+
+        return response()->json($res, $res['code']);
     }
 }
