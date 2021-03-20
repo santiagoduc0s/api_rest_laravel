@@ -252,4 +252,28 @@ class UserController extends Controller
 
         return $res;
     }
+
+    public function getUser($id)
+    {
+        $user = User::find($id);
+
+        // Validacion
+        if (is_object($user)) { // Usuario encontrado.
+
+            $res = [
+                'code' => 200,
+                'status' => 'succes',
+                'user' => $user
+            ];
+        } else { // Usuario no encontrado.
+
+            $res = [
+                'code' => 404,
+                'status' => 'error',
+                'message' => 'No se encontro ningún usuario con ese id.'
+            ];
+        }
+
+        return response()->json($res, $res['code']);
+    }
 }
