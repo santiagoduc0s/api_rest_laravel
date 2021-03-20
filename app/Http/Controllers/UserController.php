@@ -193,17 +193,17 @@ class UserController extends Controller
         if (!$image) { // Validacion fallida.
 
             $validate = \Validator::make($req->all(), [
-                'file0' => 'required|mimes:png,jpg,jpeg'
+                'file0' => 'required|mimes:png,jpg,jpeg' // Comprueba imagen.
             ]);
 
-            if ($validate->fails()) {
+            if ($validate->fails()) { // No es una imagen.
 
                 $res = [
                     'code' => 400,
                     'status' => 'error',
                     'message' => 'El formato del archivo seleccionado es invalida.'
                 ];
-            } else {
+            } else { // Error en la imagen.
 
                 $res = [
                     'code' => 400,

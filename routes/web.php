@@ -13,7 +13,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-// Carga Middleware
+// Middlewares
 use \App\http\Middleware\ApiAuthMiddleware;
 
 // User
@@ -23,3 +23,19 @@ Route::put('/api/user/update', 'UserController@update');
 Route::post('/api/user/upload_avatar', 'UserController@uploadAvatar')->middleware(ApiAuthMiddleware::class);
 Route::get('/api/user/avatar/{filename}', 'UserController@getAvatar');
 Route::get('/api/user/{id}', 'UserController@getUser');
+
+// Category
+
+/**
+ * 
+ * Resource crea una seria de metodos definidos:
+ *  index => lista las categorias.
+ *  store => guarda una categoria.
+ *  create => muestra una vista para crear una categoria.
+ *  show => muestra el detalle de una categoria.
+ *  update => actualiza una categoria.
+ *  destroy => elimina una categoria.
+ *  edit => muestra una vista para editar una categoria.
+ * 
+ */
+Route::resource('/api/category', 'CategoryController');
