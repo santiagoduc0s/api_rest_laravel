@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
+use App\User;
 
 class UserController extends Controller
 {
@@ -210,27 +211,45 @@ class UserController extends Controller
                     'message' => 'Ocurrió un error en la subida del avatar.'
                 ];
             }
-            
-            
         } else { // Validacion correcta.
 
             $image_name = time() . $image->getClientOriginalName();
-            
+
             /**
              * Para usuar este disco, primero debe ser registrado creado y registrado 
              * en \config\filesystems.php
              */
             \Storage::disk('users')->put($image_name, \File::get($image)); // Guardar imagen.
-             
+
             $res = [
                 'code' => 200,
                 'status' => 'succes',
                 'message' => 'El avatar fue subido correctamente.',
                 'image' => $image_name
             ];
-
         }
 
         return response()->json($res, $res['code']);
+    }
+
+    public function getAvatar($filename)
+    {
+        // Existe el archivo.
+        $exists = \Storage::disk('users')->exists($filename);
+
+        if ($exists) { // Si existe.
+
+            $file = \Storage::disk('users')->get($filename);
+            $res = new Response($file, 200);
+        } else { // No existe.
+
+            $res = [
+                'code' => 404,
+                'status' => 'error',
+                'message' => 'No existe ningun archivo con ese nombre.'
+            ];
+        }
+
+        return $res;
     }
 }
