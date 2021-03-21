@@ -3,9 +3,13 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
 {
+    // deleted_at
+    use SoftDeletes;
+
     /**
      * Tabla asociada al modelo.
      */

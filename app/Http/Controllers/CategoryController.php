@@ -93,4 +93,88 @@ class CategoryController extends Controller
 
         return response()->json($res, $res['code']);
     }
+
+    public function update($id, Request $req)
+    {
+        // Buscar categoria
+        $category = Category::find($id);
+
+        // Extraer campos
+        $data_array = json_decode($req->json, true);
+
+
+        if (is_object($category)) { // Categoria encontrada.
+            
+            // Validar campos.
+            $validate = \Validator::make($data_array, [
+                'name'  => 'required|alpha'
+            ]);
+
+            if ($validate->fails()) { // Campos erroneos.
+
+                $res = [
+                    'code' => 400,
+                    'status' => 'error',
+                    'message' => 'Los datos ingresados no son correctos.'
+                ];
+            } else { // Campos correctos.
+
+                unset($data_array['id']);
+                unset($data_array['created_at']);
+                unset($data_array['updated_at']);
+
+                // Actualizar categoria.
+                $user_update = Category::where('id', $id)->update($data_array);
+
+                if ($user_update) { // Categoria actualizada.
+                    
+                    $res = [
+                        'code' => 200,
+                        'status' => 'succes',
+                        'message' => 'Se ha actualizado la categoría correctamente.',
+                        'category' => $category
+                    ];
+                } else { // Error al actualizar.
+                    $res = [
+                        'code' => 400,
+                        'status' => 'succes',
+                        'message' => 'No fue posible actualizar la categoria.',
+                    ];
+                }
+            }
+        } else {
+
+            $res = [
+                'code' => 404,
+                'status' => 'error',
+                'message' => 'La categoría no existe.'
+            ];
+        }
+
+        return response()->json($res, $res['code']);
+    }
+
+    public function destroy($id)
+    {
+        $isDeleted = Category::destroy($id);
+
+        if ($isDeleted) {
+
+            $res = [
+                'code'      => 200,
+                'status'    => 'error',
+                'message'   => 'La categoría fue eliminada.'
+            ];
+        } else {
+
+            $res = [
+                'code'      => 400,
+                'status'    => 'error',
+                'message'   => 'La categoría no existe.'
+            ];
+        }
+
+        return response()->json($res, $res['code']);
+
+    }
 }

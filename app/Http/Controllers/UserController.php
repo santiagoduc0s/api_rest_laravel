@@ -147,6 +147,7 @@ class UserController extends Controller
                 unset($data_array['role']);
                 unset($data_array['password']);
                 unset($data_array['created_at']);
+                unset($data_array['updated_at']);
                 unset($data_array['remember_token']);
 
                 // Actualizar usuario.
