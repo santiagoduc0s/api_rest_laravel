@@ -24,7 +24,7 @@ Route::post('/api/user/upload_avatar', 'UserController@uploadAvatar')->middlewar
 Route::get('/api/user/avatar/{filename}', 'UserController@getAvatar');
 Route::get('/api/user/{id}', 'UserController@getUser');
 
-// Category
+
 
 /**
  * 
@@ -38,4 +38,9 @@ Route::get('/api/user/{id}', 'UserController@getUser');
  *  edit => muestra una vista para editar una categoria.
  * 
  */
+
+// Category
 Route::resource('/api/category', 'CategoryController');
+
+// Posts
+Route::resource('/api/post', 'PostController');

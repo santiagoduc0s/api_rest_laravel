@@ -24,7 +24,7 @@ class CategoryController extends Controller
             'code' => 200,
             'status' => 'succes',
             'categories' => $categories
-        ]);
+        ], 200);
     }
 
     public function show($id) // Detalle de una categoria.
@@ -94,7 +94,7 @@ class CategoryController extends Controller
         return response()->json($res, $res['code']);
     }
 
-    public function update($id, Request $req)
+    public function update($id, Request $req) // Actualizar categoria.
     {
         // Buscar categoria
         $category = Category::find($id);
@@ -154,7 +154,7 @@ class CategoryController extends Controller
         return response()->json($res, $res['code']);
     }
 
-    public function destroy($id)
+    public function destroy($id) // Eliminar categoria.
     {
         $isDeleted = Category::destroy($id);
 
