@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
+use App\Helpers\JwtAuth;
 use Illuminate\Support\Facades\DB;
 use App\Post;
 
@@ -50,17 +51,26 @@ class PostController extends Controller
         return response()->json($res, $res['code']);
     }
 
-    public function store(Request $req) // Guardar una categoria.
+    public function store(Request $req) // Guardar un posteo.
     {
         // Extraer datos enviados.
         $json = $req->input('json', null);
         $data_array = json_decode($json, true);
 
+        // Recibir token.
+        $token = $req->header('Authorization');
+
+        // Decodificar token.
+        $JwtAuth = new \JwtAuth();
+        $user = $JwtAuth->checkToken($token, true);
+
         // Validar campos.
         if (!is_null($json)) {
 
             $validate = \Validator::make($data_array, [
-                'name'  => 'required|alpha'
+                'title'  => 'required',
+                'content'  => 'required',
+                'category_id'  => 'required'
             ]);
 
             if ($validate->fails()) { // Campos invalidos.
@@ -68,18 +78,21 @@ class PostController extends Controller
                 $res = [
                     'code'      => 400,
                     'status'    => 'error',
-                    'message'   => 'Los datos enviados son invalidos.'
+                    'message'   => 'Faltan enviar datos.'
                 ];
             } else { // Campos validos.
 
-                $category = new Category();
-                $category->name = $data_array['name'];
-                $category->save(); // Guardar categoria.
+                $post = new Post();
+                $post->title = $data_array['title'];
+                $post->content = $data_array['content'];
+                $post->category_id = $data_array['category_id'];
+                $post->user_id = $user->sub;
+                $post->save(); // Guardar posteo.
 
                 $res = [
                     'code' => 200,
                     'message' => 'succes',
-                    'category' => $category
+                    'post' => $post
                 ];
             }
         } else {
