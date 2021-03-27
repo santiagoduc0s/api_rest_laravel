@@ -5,9 +5,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-
-use App\Helpers\JwtAuth;
-use Illuminate\Support\Facades\DB;
 use App\Post;
 
 class PostController extends Controller
@@ -78,7 +75,8 @@ class PostController extends Controller
                 $res = [
                     'code'      => 400,
                     'status'    => 'error',
-                    'message'   => 'Faltan enviar datos.'
+                    'message'   => 'Faltan enviar datos.',
+                    'errors' => $validate->errors()
                 ];
             } else { // Campos validos.
 
@@ -91,7 +89,8 @@ class PostController extends Controller
 
                 $res = [
                     'code' => 200,
-                    'message' => 'succes',
+                    'status' => 'succes',
+                    'message' => 'Se ha creado el posteo.',
                     'post' => $post
                 ];
             }
@@ -108,20 +107,28 @@ class PostController extends Controller
         return response()->json($res, $res['code']);
     }
 
-    public function update($id, Request $req) // Actualizar categoria.
+    public function update($id, Request $req) // Actualizar post.
     {
-        // Buscar categoria
-        $category = Category::find($id);
+        // Recibir usuario
+        $user = $this->getUser($req);
 
-        // Extraer campos
+        // Buscar post.
+        $where = [
+            'id'        => $id,
+            'user_id'   => $user->sub
+        ];
+        $post = Post::where($where)->first();
+
+        // Extraer campos.
         $data_array = json_decode($req->json, true);
 
+        if (is_object($post)) { // Categoria encontrada.
 
-        if (is_object($category)) { // Categoria encontrada.
-            
             // Validar campos.
             $validate = \Validator::make($data_array, [
-                'name'  => 'required|alpha'
+                'title'  => 'required',
+                'content'  => 'required',
+                'category_id'  => 'required'
             ]);
 
             if ($validate->fails()) { // Campos erroneos.
@@ -129,24 +136,27 @@ class PostController extends Controller
                 $res = [
                     'code' => 400,
                     'status' => 'error',
-                    'message' => 'Los datos ingresados no son correctos.'
+                    'message' => 'Los datos ingresados no son correctos.',
+                    'errors' => $validate->errors()
                 ];
             } else { // Campos correctos.
 
                 unset($data_array['id']);
+                unset($data_array['user_id']);
                 unset($data_array['created_at']);
                 unset($data_array['updated_at']);
 
-                // Actualizar categoria.
-                $user_update = Category::where('id', $id)->update($data_array);
+                // Actualizar posteo.
+                $post_update = Post::where('id', $id)->update($data_array);
 
-                if ($user_update) { // Categoria actualizada.
-                    
+                if ($post_update) { // Categoria actualizada.
+
                     $res = [
                         'code' => 200,
                         'status' => 'succes',
                         'message' => 'Se ha actualizado la categoría correctamente.',
-                        'category' => $category
+                        'post' => $post,
+                        'changes' => $data_array
                     ];
                 } else { // Error al actualizar.
                     $res = [
@@ -168,27 +178,50 @@ class PostController extends Controller
         return response()->json($res, $res['code']);
     }
 
-    public function destroy($id) // Eliminar categoria.
+    public function destroy($id, Request $req) // Eliminar post.
     {
-        $isDeleted = Category::destroy($id);
+        // Recibir usuario
+        $user = $this->getUser($req);
 
-        if ($isDeleted) {
+        // Buscar post.
+        $where = [
+            'id'        => $id,
+            'user_id'   => $user->sub
+        ];
+        $post = Post::where($where)->first();
+
+        if (is_object($post)) {
+
+            // Eliminar post.
+            Post::destroy($id);
+            //$post->destroy();
 
             $res = [
                 'code'      => 200,
-                'status'    => 'error',
-                'message'   => 'La categoría fue eliminada.'
+                'status'    => 'succes',
+                'message'   => 'La categoría fue eliminada.',
+                'post'      => $post
             ];
         } else {
 
             $res = [
                 'code'      => 400,
                 'status'    => 'error',
-                'message'   => 'La categoría no existe.'
+                'message'   => 'El post no existe.'
             ];
         }
 
-        return response()->json($res, $res['code']);
 
+        return response()->json($res, $res['code']);
+    }
+
+    private function getUser($requst)
+    {
+        // Recibir token.
+        $token = $requst->header('Authorization');
+        // Decodificar token.
+        $JwtAuth = new \JwtAuth();
+        $user = $JwtAuth->checkToken($token, true);
+        return $user;
     }
 }
