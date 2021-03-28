@@ -215,6 +215,44 @@ class PostController extends Controller
         return response()->json($res, $res['code']);
     }
 
+    public function upload(Request $req) // Subir imagen de posteo
+    {
+        // Recibir imagen
+        $image = $req->file('file0');
+
+        // Validar imagen.
+        $validate = \Validator::make($req->all(), [
+            'file0' => 'required|mimes:png,jpg,jpeg' // Comprueba imagen.
+        ]);
+
+        if ($validate->fails()) { // Validacion fallida.
+
+            $res = [
+                'code' => 400,
+                'status' => 'error',
+                'message' => 'Ocurrió un error en la subida del archivo.'
+            ];
+        } else { // Validacion correcta.
+
+            $image_name = time() . $image->getClientOriginalName();
+
+            /**
+             * Para usuar este disco, primero debe ser registrado creado y registrado 
+             * en \config\filesystems.php
+             */
+            \Storage::disk('posts')->put($image_name, \File::get($image)); // Guardar imagen.
+
+            $res = [
+                'code' => 200,
+                'status' => 'succes',
+                'message' => 'La imagen del post fue subida correctamente.',
+                'image' => $image_name
+            ];
+        }
+
+        return response()->json($res, $res['code']);
+    }
+
     private function getUser($requst)
     {
         // Recibir token.

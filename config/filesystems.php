@@ -62,7 +62,7 @@ return [
             'visibility' => 'public',
         ],
 
-        'posts_images' => [
+        'posts' => [
             'driver' => 'local',
             'root' => storage_path('app/posts'),
             'url' => env('APP_URL').'/storage',
