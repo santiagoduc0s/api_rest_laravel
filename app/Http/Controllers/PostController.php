@@ -12,7 +12,13 @@ class PostController extends Controller
     public function __construct()
     {
         // Cargar middleware.
-        $this->middleware('api.auth', ['except' => ['index', 'show']]);
+        $this->middleware('api.auth', ['except' => [
+            'index', 
+            'show', 
+            'getImage', 
+            'getPostsByCategory', 
+            'getPostsByUser'
+        ]]);
     }
 
     public function index() // Listar posts.
@@ -272,6 +278,28 @@ class PostController extends Controller
         }
 
         return response()->json($res, $res['code']);
+    }
+
+    public function getPostsByCategory($category_id)
+    {
+        $post = Post::where('category_id', $category_id)->get();
+        
+        return response()->json([
+            'code' => 200,
+            'status' => 'succes',
+            'posts' => $post
+        ], 200);
+    }
+
+    public function getPostsByUser($user_id)
+    {
+        $post = Post::where('user_id', $user_id)->get();
+        
+        return response()->json([
+            'code' => 200,
+            'status' => 'succes',
+            'posts' => $post
+        ], 200);
     }
 
     private function getUser($requst)
