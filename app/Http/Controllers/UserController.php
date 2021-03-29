@@ -241,7 +241,7 @@ class UserController extends Controller
         if ($exists) { // Si existe.
 
             $file = \Storage::disk('users')->get($filename);
-            $res = new Response($file, 200);
+            return new Response($file, 200);
         } else { // No existe.
 
             $res = [
@@ -251,7 +251,7 @@ class UserController extends Controller
             ];
         }
 
-        return $res;
+        return response()->json($res, $res['code']);
     }
 
     public function getUser($id)

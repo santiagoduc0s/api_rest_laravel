@@ -45,3 +45,4 @@ Route::resource('/api/category', 'CategoryController');
 // Posts
 Route::resource('/api/post', 'PostController');
 Route::post('/api/post/upload_image', 'PostController@upload');
+Route::get('/api/post/image/{filename}', 'PostController@getImage');

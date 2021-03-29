@@ -253,6 +253,27 @@ class PostController extends Controller
         return response()->json($res, $res['code']);
     }
 
+    public function getImage($filename)
+    {
+        // Existe el archivo.
+        $exists = \Storage::disk('posts')->exists($filename);
+
+        if ($exists) { // Si existe.
+
+            $file = \Storage::disk('posts')->get($filename);
+            return new Response($file, 200);
+        } else { // No existe.
+
+            $res = [
+                'code' => 404,
+                'status' => 'error',
+                'message' => 'No existe ningun archivo con ese nombre.'
+            ];
+        }
+
+        return response()->json($res, $res['code']);
+    }
+
     private function getUser($requst)
     {
         // Recibir token.
